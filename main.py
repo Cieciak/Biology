@@ -1,4 +1,5 @@
 from collections import namedtuple
+import csv
 
 ChargaffRule = namedtuple('Chargaff', ['name', 'complementary'])
 
@@ -37,13 +38,69 @@ class DNA:
             unknown = list(residue) if len(residue) < 4 else '[' + ' ,'.join(residue[0:2]) + f' ... ,{residue[-1]}]'
             raise ValueError(f'Found unknown nitrogen bases {unknown} in given DNA sequence')
 
-        self.sequence = sequence
-        self.complementary = DNA.create_complementary(sequence)
+        self.coding_strand = sequence
+        self.template_strand = DNA.create_complementary(sequence)
 
     def __repr__(self) -> str:
-        return f'{self.sequence}\n{self.complementary}'
+        return f'{self.coding_strand}\n{self.template_strand}'
+
+class RNA:
+
+    NITROGEN_BASES = {
+        'A': 'U',
+        'C': 'G',
+        'G': 'C',
+        'T': 'A',
+    }
+
+        # To refactor later (dict map)
+    @staticmethod
+    def create_complementary(sequence: str) -> str:
+        '''Returns complementary sequence of nitrogen bases'''
+        complementary_sequence = ''
+        for base in sequence:
+            complementary_sequence += RNA.NITROGEN_BASES[base]
+        return complementary_sequence
+
+    def __init__(self, dna: DNA) -> None:
+        sequence = dna.template_strand
+        self.trasported_strand: str = RNA.create_complementary(sequence)
+
+    def __repr__(self) -> str:
+        return self.trasported_strand
+
+class Compiler:
+
+    def __init__(self, path: str):
+
+        self.genetic_code: dict[str, str] = {}
+        with open(path, 'r') as file:
+            genetic_code = csv.reader(file)
+
+            for row in genetic_code:
+                if row: self.genetic_code[row[0]] = row[1].strip()
+
+    def compile(self, rna: RNA):
+        rest = rna.trasported_strand
+        aminoacid = []
+        while rest:
+            codon = rest[:3]
+            rest = rest[3:]
+
+            aminoacid.append(self.genetic_code[codon].capitalize())
+
+        return '-'.join(aminoacid)
+
 
 if __name__ == '__main__':
     dna = DNA('CTTGCGACGTTG')
 
+    rna = RNA(dna)
+
+    cmp = Compiler('./codons.csv')
+
     print(dna)
+
+    print(rna)
+
+    print(cmp.compile(rna))
