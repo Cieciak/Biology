@@ -1,3 +1,4 @@
+from typing import Self
 from pprint import pprint
 from collections import namedtuple
 
@@ -54,7 +55,7 @@ class Organism:
     def __repr__(self) -> str:
         return f'{self.genes}'
 
-    def __matmul__(self, other):
+    def __matmul__(self, other: Self):
         # This will return matrix of all options
         self_half = self.get_all_combinations()
         other_half = other.get_all_combinations()
@@ -118,13 +119,12 @@ if __name__ == '__main__':
     p1 = Organism(sys.argv[1])
     p2 = Organism(sys.argv[2])
 
-    print(f'Parent 1: {p1}')
-    print(f'Parent 2: {p2}')
-    print()
+    print(p1)
+    print(p2)
 
     f1 = p1 @ p2
     print_matrix(p1, p2, f1)
-    print()
+
     f = flatten(f1)
 
     for child in minimalze(f):
