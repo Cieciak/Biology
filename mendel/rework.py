@@ -1,4 +1,3 @@
-from typing import Self
 import csv, random
 
 CODONS_PATH: str = './csv/mcodons.csv'
@@ -105,7 +104,7 @@ class Organism:
             output.append(name)
         return ', '.join(output)
 
-    def __matmul__(parent_one: Self, parent_two: Self):
+    def __matmul__(parent_one, parent_two):
         # Return all combinations
         output: list[Organism] = []
 
