@@ -58,12 +58,23 @@ class Organism:
     @classmethod
     def fromDNA(cls, dna: str, codons: dict[str , str]):
         
+        dna = dna.replace(' ', '')
+
         # Find the STOP and DOM codon
         STOP = Organism.find_codon(codons, 'STOP')
         DOM =  Organism.find_codon(codons, 'DOM')
 
         # Split genome at every STOP codon
-        genes = [x for x in dna.split(STOP) if x]
+        gene = ''
+        genes = []
+        while dna:
+            codon = dna[:3]
+            dna = dna[3:]
+            if codon == STOP:
+                genes.append(gene)
+                gene = ''
+                continue
+            gene += codon
 
         # Scan code for genes
         genome = []
@@ -134,10 +145,16 @@ class Organism:
 
         return output
 
-    def executable_dna(self):
+    def executable_dna(self, translate: bool = True):
         output = []
         for gen in self.genes:
-            output.append(gen.dominant[0].sequence if gen.dominant else gen.alleles[0].sequence)
+            sequence = random.choice(gen.dominant).sequence if gen.dominant else random.choice(gen.alleles).sequence
+            gen_codons = []
+            while sequence:
+                codon = sequence[:3]
+                sequence = sequence[3:]
+                gen_codons.append(self.codons[codon] if translate else codon)
+            output.append(gen_codons)
 
         return output
 
@@ -151,9 +168,9 @@ class Organism:
     
 if __name__ == '__main__':
 
-    org1 = Organism.fromDNA('CCGCGATTTAACTTTATCTTTTGCTTT', CODONS_DICT)
-    org2 = Organism.fromDNA('AACTTTCCGAACTTTCCGTTTAGCTTT', CODONS_DICT)
+    org1 = Organism.fromDNA('CCG CAT CCT TTT TAA TTT CCG GAG CCT CTC TTT CCG GAG CCT CTC TTT CAT CTC CTC CTC TTT CAT CTC CTC CTC TTT', CODONS_DICT)
+    org2 = Organism.fromDNA('TAA         TTT TAA TTT CAT CTC CTC     TTT CAT CCT CTT     TTT GAG CTC CTC CTC TTT GAG CTC CTC CTC TTT', CODONS_DICT)
     print('Organism one:', org1)
     print('Organism two:', org2)
 
-    print('Children:', random.choice(org1 @ org2))
+    print('Children:', random.choice(org1 @ org2).executable_dna())

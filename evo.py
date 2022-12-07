@@ -1,4 +1,6 @@
 import tkinter, threading, time, math
+import mendel.rework as mendel
+
 
 class Vector2:
 
@@ -45,15 +47,70 @@ class Being:
     def time_coeff(t: float):
         return math.exp(-(4*t -2)**2)
 
-    def __init__(self, position: Vector2, size: Vector2) -> None:
+    @classmethod
+    def fromOrganism(cls, org: mendel.Organism):
+        executable = org.executable_dna()
+        keys = ['size', 'flap_force', 'mass']
+        defa =[Vector2(20, 20), Vector2(0, -200), float(1.0)]
+        args = {}
+        mode = ''
+        counter = 0
+        for gene in executable:
+            print(gene)
+            for opcode in gene:
+                match opcode:
+
+                    case 'NOP': pass
+
+                    case 'INC':
+                        if counter == 0: 
+                            mode = 'inc'
+                        elif mode == 'inc':
+                            defa[counter - 1] *= 1.2
+                            counter = 0
+                        elif mode == 'dec':
+                            defa[counter - 1] *= 0.8
+                            counter = 0
+                    case 'DEC':
+                        if counter == 0: 
+                            mode = 'dec'
+                        elif mode == 'inc':
+                            defa[counter - 1] *= 1.2
+                            counter = 0
+                        elif mode == 'dec':
+                            defa[counter - 1] *= 0.8
+                            counter = 0
+                    case 'ONE':
+                        counter += 1
+
+        for key, val in zip(keys, defa):
+            args[key] = val
+
+        return cls(Vector2(0, 0), **args)
+        
+
+
+    def __init__(self, position: Vector2, size, flap_force, mass) -> None:
         self.position = position
         self.size = size
         self.velocity     = Vector2(0, 0) # px / second
         self.acceleration = Vector2(0, 0) # px / second**2
-        self.force = Vector2(1,-1)  # [N]
-        self.mass = 1 # [kg]
+        self.force = Vector2(0,0)  # [N]
+        self.flap_force = flap_force # [N]
+        self.mass = mass # [kg]
 
         self.since_flap: float = 1
+
+
+    def set_mass(self, mass: float = 1.0):
+        self.mass = mass
+
+    def set_size(self, size: Vector2):
+        self.size = size
+
+    def set_force(self, force: Vector2):
+        self.flap_force = force
+
 
     def draw(self, canvas: tkinter.Canvas):
         dx, dy = canvas.global_offset.diff() 
@@ -68,11 +125,10 @@ class Being:
         if self.since_flap > 1:
             self.since_flap = 0
 
-
     def update(self, ctx: tkinter.Tk, dt: float):
         self.make_decision(ctx, dt)
 
-        self.force = Vector2(0, -220) * Being.time_coeff(self.since_flap) + Vector2(0, 90)
+        self.force = self.flap_force * Being.time_coeff(self.since_flap) + Vector2(0, 90)
 
         prev_acceleration = self.acceleration
         self.acceleration = self.force / self.mass
@@ -81,7 +137,7 @@ class Being:
 
         self.since_flap += dt
 
-        print(f'acceleration: {round(self.acceleration, 3)}, {self.since_flap}')
+        #print(f'acceleration: {round(self.flap_force, 3)}')
 
 class SimulationWindow(tkinter.Tk):
 
@@ -155,15 +211,8 @@ class SimulationWindow(tkinter.Tk):
 
     # Other
     def key_down(self, key):
-        if key.char == 's':
-            self.objects[0].position += Vector2(0, 1)
-        elif key.char == 'a':
-            self.objects[0].position += Vector2(-1, 0)
-        elif key.char == 'd':
-            self.objects[0].position += Vector2(1, 0)
-        elif key.char == 'w':
-            self.objects[0].position += Vector2(0, -1)
+        pass
 
 window = SimulationWindow()
-window.objects = [Being(Vector2(0 , 0), Vector2(40, 40))]
+window.objects = [Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))]
 window.mainloop()
