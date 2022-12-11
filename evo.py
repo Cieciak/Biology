@@ -152,9 +152,25 @@ class SimulationWindow(tkinter.Tk):
 
         # Set up the window
         self.title('Simulation')
-        self.geometry(f'{x_res}x{y_res}')
+        self.geometry(f'{x_res}x{y_res + 30}')
         self.resizable(0, 0)
         self.bind('<KeyPress>', self.key_down)
+        self['bg'] = 'white'
+
+        # Simulation control
+        # At the bottom
+        cfg = {
+            'border': 0,
+            'background': 'grey',
+        }
+        self.siml_button = tkinter.Button(self, cnf = cfg, text = 'START / STOP')
+        self.siml_button.place(x =      -1, y = y_res - 1, height = 30 + 2, width = 120 + 2)
+
+        self.rest_button = tkinter.Button(self, cnf = cfg, text = 'RESET')
+        self.rest_button.place(x = 120 - 1, y = y_res - 1, height = 30 + 2, width =  60 + 2)
+
+        self.exit_button = tkinter.Button(self, cnf = cfg, text = 'EXIT')
+        self.exit_button.place(x = 450 - 1, y = y_res - 1, height = 30 + 2, width =  50 + 2)
 
         # Set up the canvas
         cfg = {
@@ -199,10 +215,13 @@ class SimulationWindow(tkinter.Tk):
 
     # Rendering
     def mainloop(self) -> None:
-        while True:
-            self.render_frame()
-            self.update()
-            self.canvas.delete('all')
+        try:
+            while True:
+                self.render_frame()
+                self.update()
+                self.canvas.delete('all')
+        except KeyboardInterrupt:
+            return
 
     def render_frame(self):
         # TODO: Cap frames
