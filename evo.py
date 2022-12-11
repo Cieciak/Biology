@@ -137,7 +137,6 @@ class Being:
 
         self.since_flap += dt
 
-        #print(f'acceleration: {round(self.flap_force, 3)}')
 
 class SimulationWindow(tkinter.Tk):
 
@@ -149,6 +148,10 @@ class SimulationWindow(tkinter.Tk):
         self.YRES = y_res
         self.objects = []
         self.time: float = 0.0
+        self.running: bool = False
+        self.loop_flag: bool = True
+
+        self.default: list = []
 
         # Set up the window
         self.title('Simulation')
@@ -163,13 +166,13 @@ class SimulationWindow(tkinter.Tk):
             'border': 0,
             'background': 'grey',
         }
-        self.siml_button = tkinter.Button(self, cnf = cfg, text = 'START / STOP')
+        self.siml_button = tkinter.Button(self, cnf = cfg, text = 'START / STOP', command = self.control)
         self.siml_button.place(x =      -1, y = y_res - 1, height = 30 + 2, width = 120 + 2)
 
-        self.rest_button = tkinter.Button(self, cnf = cfg, text = 'RESET')
+        self.rest_button = tkinter.Button(self, cnf = cfg, text =        'RESET', command = self.load)
         self.rest_button.place(x = 120 - 1, y = y_res - 1, height = 30 + 2, width =  60 + 2)
 
-        self.exit_button = tkinter.Button(self, cnf = cfg, text = 'EXIT')
+        self.exit_button = tkinter.Button(self, cnf = cfg, text =         'EXIT', command = self.exit)
         self.exit_button.place(x = 450 - 1, y = y_res - 1, height = 30 + 2, width =  50 + 2)
 
         # Set up the canvas
@@ -194,10 +197,14 @@ class SimulationWindow(tkinter.Tk):
         frame_time: float = 1 / ups 
         accumulator: float = 0.0
         prev_stamp: float = time.time()
-        while True:
+        while self.loop_flag:
             time_stamp: float = time.time()
             delta_time: float = time_stamp - prev_stamp
             prev_stamp = time_stamp
+
+            # This is to stop updating
+            while not self.running: time.sleep(0.01)
+            else: prev_stamp = time.time()
 
             # Acumulate time over the loop
             accumulator += delta_time
@@ -215,13 +222,11 @@ class SimulationWindow(tkinter.Tk):
 
     # Rendering
     def mainloop(self) -> None:
-        try:
-            while True:
-                self.render_frame()
-                self.update()
-                self.canvas.delete('all')
-        except KeyboardInterrupt:
-            return
+        while self.loop_flag:
+
+            self.render_frame()
+            self.update()
+            self.canvas.delete('all')
 
     def render_frame(self):
         # TODO: Cap frames
@@ -232,6 +237,28 @@ class SimulationWindow(tkinter.Tk):
     def key_down(self, key):
         pass
 
+    def control(self):
+        self.running = not self.running
+
+    def set_default(self, configuration: list[Being]):
+        self.default = configuration[::1]
+
+    def load(self, config: list[Being] = None):
+        if config: self.objects = config[::1]
+        else: self.objects = self.default
+
+    # Manages exiting the simulation
+    def exit(self):
+        self.loop_flag = False
+        self.running = True
+        self.destroy()
+
 window = SimulationWindow()
-window.objects = [Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))]
-window.mainloop()
+birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
+birb2 = Being.fromOrganism(mendel.Organism.fromDNA('TAATTT TAATTT  TAATTT TAATTT TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
+window.set_default([birb1])
+window.load([birb2])
+try:
+    window.mainloop()
+except tkinter.TclError:
+    pass
