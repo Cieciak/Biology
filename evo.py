@@ -88,8 +88,6 @@ class Being:
 
         return cls(Vector2(0, 0), **args)
         
-
-
     def __init__(self, position: Vector2, size, flap_force, mass) -> None:
         self.position = position
         self.size = size
@@ -140,7 +138,7 @@ class Being:
 
 class SimulationWindow(tkinter.Tk):
 
-    def __init__(self: tkinter.Tk, x_res: int = 500 , y_res: int = 500) -> None:
+    def __init__(self: tkinter.Tk, x_res: int = 1000 , y_res: int = 1000) -> None:
         super().__init__()
 
         # Configuration
@@ -158,22 +156,37 @@ class SimulationWindow(tkinter.Tk):
         self.geometry(f'{x_res}x{y_res + 30}')
         self.resizable(0, 0)
         self.bind('<KeyPress>', self.key_down)
-        self['bg'] = 'white'
+        self['bg'] = '#F5F1E3'
 
         # Simulation control
         # At the bottom
         cfg = {
             'border': 0,
-            'background': 'grey',
+            'background': '#1C7C54',
+            'activebackground': '#1B512D',
         }
-        self.siml_button = tkinter.Button(self, cnf = cfg, text = 'START / STOP', command = self.control)
-        self.siml_button.place(x =      -1, y = y_res - 1, height = 30 + 2, width = 120 + 2)
+        self.siml_button = tkinter.Button(self, cnf = cfg, text = 'START', command = self.control)
+        self.siml_button.place(x = -1, y = y_res, height = 30 + 1, width = 120)
 
-        self.rest_button = tkinter.Button(self, cnf = cfg, text =        'RESET', command = self.load)
-        self.rest_button.place(x = 120 - 1, y = y_res - 1, height = 30 + 2, width =  60 + 2)
+        cfg = {
+            'border': 0,
+            'background': '#08181A',
+            'foreground': '#DDDBCB',
+            'activebackground': '#050505',
+            'activeforeground': '#DDDBCB',
+        }
 
-        self.exit_button = tkinter.Button(self, cnf = cfg, text =         'EXIT', command = self.exit)
-        self.exit_button.place(x = 450 - 1, y = y_res - 1, height = 30 + 2, width =  50 + 2)
+        # Bottom right corner next to exit
+        self.rest_button = tkinter.Button(self, cnf = cfg, text = 'RESET', command = self.load)
+        self.rest_button.place(x = x_res - 60 - 50 - 1, y = y_res - 1, height = 30 + 2, width =  60 + 2)
+
+        # Bottom right corner
+        self.exit_button = tkinter.Button(self, cnf = cfg, text =  'EXIT', command = self.exit)
+        self.exit_button.place(x = x_res - 50 - 1, y = y_res - 1, height = 30 + 2, width =  50 + 2)
+
+        self.the_best_var = tkinter.StringVar(self)
+        self.the_best_label = tkinter.Label(self, textvariable = self.the_best_var)
+        self.the_best_label.place(x = 120, y = y_res - 1, height=30, width= 150)
 
         # Set up the canvas
         cfg = {
@@ -230,15 +243,21 @@ class SimulationWindow(tkinter.Tk):
 
     def render_frame(self):
         # TODO: Cap frames
+        best = self.objects[0].position.y
         for obj in self.objects:
+            best = obj.position.y if obj.position.y < best else best
             obj.draw(self.canvas)
+        self.the_best_var.set(f'{round(best, 3)}')
 
     # Other
     def key_down(self, key):
         pass
 
     def control(self):
-        self.running = not self.running
+        self.running = not self.running        # Green                            # Red
+        self.siml_button['background'] =       '#1C7C54' if not self.running else '#FF3C38'
+        self.siml_button['activebackground'] = '#1B512D' if not self.running else '#7D1538'
+        self.siml_button['text'] = 'STOP' if self.running else 'START'
 
     def set_default(self, configuration: list[Being]):
         self.default = configuration[::1]
@@ -255,7 +274,7 @@ class SimulationWindow(tkinter.Tk):
 
 window = SimulationWindow()
 birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
-birb2 = Being.fromOrganism(mendel.Organism.fromDNA('TAATTT TAATTT  TAATTT TAATTT TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
+birb2 = Being.fromOrganism(mendel.Organism.fromDNA('                  TAATTT                   TAATTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
 window.set_default([birb1])
 window.load([birb2])
 try:
