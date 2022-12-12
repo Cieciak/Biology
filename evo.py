@@ -56,7 +56,6 @@ class Being:
         mode = ''
         counter = 0
         for gene in executable:
-            print(gene)
             for opcode in gene:
                 match opcode:
 
@@ -99,17 +98,6 @@ class Being:
 
         self.since_flap: float = 1
 
-
-    def set_mass(self, mass: float = 1.0):
-        self.mass = mass
-
-    def set_size(self, size: Vector2):
-        self.size = size
-
-    def set_force(self, force: Vector2):
-        self.flap_force = force
-
-
     def draw(self, canvas: tkinter.Canvas):
         dx, dy = canvas.global_offset.diff() 
         if canvas.max > canvas.render_offset.manhattan(self.position):
@@ -138,7 +126,7 @@ class Being:
 
 class SimulationWindow(tkinter.Tk):
 
-    def __init__(self: tkinter.Tk, x_res: int = 1000 , y_res: int = 1000) -> None:
+    def __init__(self: tkinter.Tk, x_res: int = 800 , y_res: int = 800) -> None:
         super().__init__()
 
         # Configuration
@@ -276,7 +264,7 @@ window = SimulationWindow()
 birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
 birb2 = Being.fromOrganism(mendel.Organism.fromDNA('                  TAATTT                   TAATTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
 window.set_default([birb1])
-window.load([birb2])
+window.load([birb2, birb1])
 try:
     window.mainloop()
 except tkinter.TclError:
