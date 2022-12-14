@@ -52,10 +52,11 @@ class Being:
         executable = org.executable_dna()
         keys = ['size', 'flap_force', 'mass']
         defa =[Vector2(20, 20), Vector2(0, -200), float(1.0)]
-        args = {}
+        args = {'base_organism': org}
         mode = ''
         counter = 0
         for gene in executable:
+            print(gene)
             for opcode in gene:
                 match opcode:
 
@@ -81,13 +82,16 @@ class Being:
                             counter = 0
                     case 'ONE':
                         counter += 1
+        print()
 
         for key, val in zip(keys, defa):
             args[key] = val
 
         return cls(Vector2(0, 0), **args)
         
-    def __init__(self, position: Vector2, size, flap_force, mass) -> None:
+    def __init__(self, position: Vector2, size, flap_force, mass, *, base_organism: mendel.Organism) -> None:
+        self.base_organism = base_organism
+
         self.position = position
         self.size = size
         self.velocity     = Vector2(0, 0) # px / second
@@ -97,6 +101,15 @@ class Being:
         self.mass = mass # [kg]
 
         self.since_flap: float = 1
+
+    def __matmul__(P1, P2):
+
+        F1 = P1.base_organism @ P2.base_organism
+
+        children = []
+        for f in F1:
+            children.append(Being.fromOrganism(f))
+        return children
 
     def draw(self, canvas: tkinter.Canvas):
         dx, dy = canvas.global_offset.diff() 
@@ -163,6 +176,10 @@ class SimulationWindow(tkinter.Tk):
             'activebackground': '#050505',
             'activeforeground': '#DDDBCB',
         }
+
+        # Next gen
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEW', command = self.next_gen)
+        self.next_button.place(x = x_res - 60 - 50 - 50 - 1, y = y_res - 1, height = 30 + 2, width = 50 + 2)
 
         # Bottom right corner next to exit
         self.rest_button = tkinter.Button(self, cnf = cfg, text = 'RESET', command = self.load)
@@ -250,6 +267,19 @@ class SimulationWindow(tkinter.Tk):
     def set_default(self, configuration: list[Being]):
         self.default = configuration[::1]
 
+    def get_best(self, n: int = 1):
+        sorted = self.objects[::]
+        sorted.sort(key = lambda being: being.position.y)
+
+        return sorted[:n]
+
+    def next_gen(self):
+        P1, P2 = self.get_best(2)
+
+        F1 = P1 @ P2
+
+        self.load(F1)
+
     def load(self, config: list[Being] = None):
         if config: self.objects = config[::1]
         else: self.objects = self.default
@@ -261,10 +291,23 @@ class SimulationWindow(tkinter.Tk):
         self.destroy()
 
 window = SimulationWindow()
-birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
-birb2 = Being.fromOrganism(mendel.Organism.fromDNA('                  TAATTT                   TAATTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
-window.set_default([birb1])
-window.load([birb2, birb1])
+
+genomes = [
+    'CCGAAAAAGAACCACCCTGGCCAACCTACATTT  CCGAACAAGACTAAGAAGTTT   TTCAAGTTT   ATCAAGTTT   CCGCCCAAGAAGTTT   CCGATTCACCACTTT',
+    'CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT',
+    'AAAAGCCAAGGCGTTCGTCCTTGCTTT  CCGTCGTGCGGCAAAATCTCATTT  TTGTTT  AAATTT TCAAAAAGTTTT CCGTGCTGATTT',
+    'CCGAAACACCACACGATACACCACTTT  CCGAACAAGTTT  CGACCTTTT  CCGATCATAATACACTTT   TTGAAGTTT  GCTGCATTAGATCACTTT',
+]
+
+beings = []
+for geneome in genomes:
+    beings.append(Being.fromOrganism(mendel.Organism.fromDNA(geneome, mendel.CODONS_DICT)))
+
+# birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
+# birb2 = Being.fromOrganism(mendel.Organism.fromDNA('AAAAGCCAAGGCGTTCGTCCTTGCTTT  CCGTCGTGCGGCAAAATCTCATTT  TTGTTT  AAATTT TCAAAAAGTTTT CCGTGCTGATTT', mendel.CODONS_DICT))
+window.set_default(beings)
+window.load()
+
 try:
     window.mainloop()
 except tkinter.TclError:
