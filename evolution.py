@@ -248,11 +248,10 @@ class SimulationWindow(tkinter.Tk):
 
     def render_frame(self):
         # TODO: Cap frames
-        best = self.objects[0].position.y
-        for obj in self.objects:
-            best = obj.position.y if obj.position.y < best else best
+        to_draw = self.get_best(64)
+        for obj in to_draw:
             obj.draw(self.canvas)
-        self.the_best_var.set(f'{round(best, 3)}')
+        self.the_best_var.set(f'{round(to_draw[0].position.y, 3)}')
 
     # Other
     def key_down(self, key):
@@ -303,8 +302,6 @@ beings = []
 for geneome in genomes:
     beings.append(Being.fromOrganism(mendel.Organism.fromDNA(geneome, mendel.CODONS_DICT)))
 
-# birb1 = Being.fromOrganism(mendel.Organism.fromDNA('CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT', mendel.CODONS_DICT))
-# birb2 = Being.fromOrganism(mendel.Organism.fromDNA('AAAAGCCAAGGCGTTCGTCCTTGCTTT  CCGTCGTGCGGCAAAATCTCATTT  TTGTTT  AAATTT TCAAAAAGTTTT CCGTGCTGATTT', mendel.CODONS_DICT))
 window.set_default(beings)
 window.load()
 
