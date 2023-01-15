@@ -444,7 +444,8 @@ class SCP3Server:
                  inc_threshold,
                  address,
                  port,
-                 handler = lambda x: x) -> None:
+                 handler = lambda x: x,
+                 setup = lambda x: x) -> None:
 
         self.socket = SCP3(out_key = out_key,
                             out_atoms = out_atoms,
@@ -454,14 +455,26 @@ class SCP3Server:
         self.alive = True
 
         self.handler = handler
+        self.setup = setup
 
     def __call__(self, other):
-        self.handler = other
+        # Decorator handlers
+        match other.__name__:
+
+            case 'handler':
+                self.handler = other
+
+            case 'setup':
+                self.setup = other
+            
+            case _:
+                raise NameError(f'{other.__name__} is not a server function')
 
     def listen(self):
         self.socket.listen()
 
     def serve(self):
+        self.setup()
         while self.alive:
             head, body, conn, addr = self.socket.recv()
             address = [int(i) for i in addr[0].split('.')]
@@ -478,9 +491,13 @@ if __name__ == '__main__':
     PATH = './scp3.keyset'
 
     server = SCP3Server.from_keyfile(PATH, '0.0.0.0', 1024)
-    
+
     @server
-    def handle(x: list[bytearray]):
+    def setup():
+        print('Server start')
+
+    @server
+    def handler(x: list[bytearray]):
         response = []
         for msg in x:
             print(msg)
