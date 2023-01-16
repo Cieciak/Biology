@@ -1,5 +1,7 @@
-import socket, crypto, pprint
+import socket, pprint
 import numpy as np
+
+from . import crypto
 
 byte = lambda x: bytearray([x,])
 
@@ -444,8 +446,8 @@ class SCP3Server:
                  inc_threshold,
                  address,
                  port,
-                 handler = lambda x: x,
-                 setup = lambda x: x) -> None:
+                 handler = lambda x, y: x,
+                 setup = lambda x: None) -> None:
 
         self.socket = SCP3(out_key = out_key,
                             out_atoms = out_atoms,
@@ -474,13 +476,13 @@ class SCP3Server:
         self.socket.listen()
 
     def serve(self):
-        self.setup()
+        self.setup(self)
         while self.alive:
             head, body, conn, addr = self.socket.recv()
             address = [int(i) for i in addr[0].split('.')]
             port = addr[1]
 
-            response = self.handler(body)
+            response = self.handler(body, self)
 
             self.socket.sendconn(address, port, conn, *response)
 
