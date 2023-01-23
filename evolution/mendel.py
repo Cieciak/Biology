@@ -1,6 +1,6 @@
 import csv, random
 
-CODONS_PATH: str = './csv/mcodons.csv'
+CODONS_PATH: str = './evolution/mcodons.csv'
 CODONS_DICT: dict[str, str] = {}
 
 # Read codons from csv

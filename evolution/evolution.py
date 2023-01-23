@@ -1,5 +1,5 @@
 import tkinter, threading, time, math
-import evolution.mendel as mendel
+import mendel
 
 
 class Vector2:
