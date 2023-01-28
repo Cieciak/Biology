@@ -1,39 +1,33 @@
-import os, threading, json
+import threading, time
 from ..CPPP import CPPP
 
-KEY_PATH = os.path.dirname(__file__) + '/scp3.keyset'
-SERVER = CPPP.SCP3Server.from_keyfile(KEY_PATH, '0.0.0.0', 8000)
+HEADER = {'method': 'GET'}
+FRAME_BUFFER = []
+COUNT = 0
 
-def generator(context, x, y):
-    return {'x': x, 'y': y}
-
-def generator_loop(context):
-    last_x = 0
-    last_y = 0
+def simulation_loop():
+    global COUNT, FRAME_BUFFER
     while True:
-        if len(context.queue) < 100:
-            context.queue.append(json.dumps(generator(context, last_x, last_y)))
-            last_y = (last_x + 1) % 1000 - 500
-            last_x = (last_y + 1) % 1000 - 500
+        if len(FRAME_BUFFER) < 100:
+            FRAME_BUFFER.append({'x': COUNT, 'y': COUNT})
+            COUNT = (COUNT + 1) % 1000
+        else:
+            time.sleep(0.01)
 
+simulation_thread = threading.Thread(target = simulation_loop)
+simulation_thread.start()
 
-@SERVER
-def setup(server: CPPP.SCP3Server):
-    server.queue: list[dict] = []
-    server.generating_thread = threading.Thread(group = None, target = generator_loop, args = (server, ))
-    server.generating_thread.start()
+server = CPPP.CPPPServer('0.0.0.0', 8080)
 
-@SERVER
-def handler(messages: list[bytearray], server: CPPP.SCP3Server):
-    output = []
-    for message in messages:
-        if message.decode('utf-8') == 'give':
-            output.append(bytearray(server.queue.pop(0), 'utf-8'))
-            print(server.queue)
-    return output
+@server
+def handler(requests: CPPP.CPPPMessage):
+    global FRAME_BUFFER
+    response = CPPP.CPPPMessage(header = HEADER)
+    if requests.body == 'get':
+        body = FRAME_BUFFER[:10]
+        FRAME_BUFFER = FRAME_BUFFER[10:]
+        response.add_body(body)
+    return response
 
-SERVER.listen()
-
-try: SERVER.serve()
-except KeyboardInterrupt: SERVER.close()
-print('Server stopped!')
+try: server.serve()
+except KeyboardInterrupt: pass

@@ -1,5 +1,6 @@
 import tkinter, time, threading
 from typing import Self
+from ..CPPP.CPPP import send_request, CPPPMessage
 
 class Vector2:
 
@@ -41,7 +42,7 @@ class Vector2:
         canvas.create_oval(self.x + dx, self.y + dy, self.x + dx, self.y + dy)
 
 print('Baking frames')
-BAKED_FRAMES = [[Vector2((x) % 1000 - 500, (x ** .5) % 1000 - 500) for y in range(400)] for x in range(1000)]
+#BAKED_FRAMES = [[Vector2((x) % 1000 - 500, (x ** .5) % 1000 - 500) for y in range(400)] for x in range(1000)]
 print('Done')
 
 
@@ -86,7 +87,9 @@ class SimulationWindow(tkinter.Tk):
     def frame_handler(self):
         while True:
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
-                self.FRAME_BUFFER.append(BAKED_FRAMES.pop(0))
+                response = send_request('127.0.0.1', 8080, CPPPMessage(body = b'get'))
+                print(response.body)
+                self.FRAME_BUFFER.extend([[Vector2(**arg),] for arg in response.body])
             else:
                 time.sleep(1 / 30)
 
