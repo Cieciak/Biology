@@ -111,30 +111,11 @@ class Being:
             children.append(Being.fromOrganism(f))
         return children
 
-    def draw(self, canvas: tkinter.Canvas):
-        dx, dy = canvas.global_offset.diff() 
-        if canvas.max > canvas.render_offset.manhattan(self.position):
-            canvas.create_rectangle(self.position.x - self.size.x / 2 + dx,
-                                    self.position.y - self.size.y / 2 + dy,
-                                    self.position.x + self.size.x / 2 + dx,
-                                    self.position.y + self.size.y / 2 + dy,
-                                    fill = '#D68915')
+
 
     def make_decision(self, ctx: tkinter.Tk, dt: float):
         if self.since_flap > 1:
             self.since_flap = 0
-
-    def update(self, ctx: tkinter.Tk, dt: float):
-        self.make_decision(ctx, dt)
-
-        self.force = self.flap_force * Being.time_coeff(self.since_flap) + Vector2(0, 90)
-
-        prev_acceleration = self.acceleration
-        self.acceleration = self.force / self.mass
-        self.position += self.velocity * dt + .5 * prev_acceleration * dt ** 2
-        self.velocity += .5 *(self.acceleration + prev_acceleration) * dt
-
-        self.since_flap += dt
 
 
 class SimulationWindow(tkinter.Tk):

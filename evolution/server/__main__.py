@@ -9,7 +9,7 @@ def simulation_loop():
     global COUNT, FRAME_BUFFER
     while True:
         if len(FRAME_BUFFER) < 100:
-            FRAME_BUFFER.append({'x': COUNT, 'y': COUNT})
+            FRAME_BUFFER.append({'x': COUNT - 500, 'y': COUNT - 500})
             COUNT = (COUNT + 1) % 1000
         else:
             time.sleep(0.01)
