@@ -111,8 +111,6 @@ class Being:
             children.append(Being.fromOrganism(f))
         return children
 
-
-
     def make_decision(self, ctx: tkinter.Tk, dt: float):
         if self.since_flap > 1:
             self.since_flap = 0

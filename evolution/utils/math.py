@@ -23,7 +23,7 @@ class Vector:
         return self * other
 
     def __truediv__(self, other: float):
-        return Vector(self.x / other, other.y / other)
+        return Vector(self.x / other, self.y / other)
 
     def __round__(self, n: int):
         return Vector(round(self.x, n), round(self.y, n))

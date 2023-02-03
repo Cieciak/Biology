@@ -1,18 +1,38 @@
 import threading, time
 from ..CPPP import CPPP
+from ..utils.math import Vector
+from ..utils.being import Being
+from ..utils.mendel import Organism, CODONS_DICT
 
-HEADER = {'method': 'GET'}
-FRAME_BUFFER = []
-COUNT = 0
+genomes = [
+    'CCGAAAAAGAACCACCCTGGCCAACCTACATTT  CCGAACAAGACTAAGAAGTTT   TTCAAGTTT   ATCAAGTTT   CCGCCCAAGAAGTTT   CCGATTCACCACTTT',
+    'CCGCATGATCGTCATCGTGATTTT CCGCATCGTGATCATCGTGATTTT  TAATTT TAATTT  TAATTT TAATTT',
+    'AAAAGCCAAGGCGTTCGTCCTTGCTTT  CCGTCGTGCGGCAAAATCTCATTT  TTGTTT  AAATTT TCAAAAAGTTTT CCGTGCTGATTT',
+    'CCGAAACACCACACGATACACCACTTT  CCGAACAAGTTT  CGACCTTTT  CCGATCATAATACACTTT   TTGAAGTTT  GCTGCATTAGATCACTTT',
+]
+
+beings = []
+for geneome in genomes:
+    beings.append(Being.fromOrganism(Organism.fromDNA(geneome, CODONS_DICT)))
+
+BEING_LIST: list[Being] = beings
+FRAME_BUFFER: list[list[Being]] = []
+
+GRAVITY: Vector = Vector(0, 90)
 
 def simulation_loop():
-    global COUNT, FRAME_BUFFER
+    global BEING_LIST, FRAME_BUFFER
+    dt = 1 / 60
     while True:
         if len(FRAME_BUFFER) < 100:
-            FRAME_BUFFER.append({'x': COUNT - 500, 'y': COUNT - 500})
-            COUNT = (COUNT + 1) % 1000
+            for obj in BEING_LIST: obj.update(None, dt, external_force = GRAVITY)
+            FRAME = [obj.to_dict() for obj in BEING_LIST]
+            FRAME_BUFFER += [FRAME, ]
         else:
             time.sleep(0.01)
+
+HEADER = {'method': 'GET'}
+COUNT = 0
 
 simulation_thread = threading.Thread(target = simulation_loop)
 simulation_thread.start()

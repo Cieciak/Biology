@@ -49,7 +49,8 @@ class SimulationWindow(tkinter.Tk):
         while True:
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
                 response = send_request(SERVER, PORT, CPPPMessage(body = b'get'))
-                self.FRAME_BUFFER.extend([[RenderBeing(Vector(**arg), Vector(20, 20))] for arg in response.body])
+                for frame in response.body: 
+                    self.FRAME_BUFFER.append([RenderBeing(Vector(**being), Vector(20, 20)) for being in frame])
             else:
                 time.sleep(1 / 30)
 
@@ -72,7 +73,9 @@ class SimulationWindow(tkinter.Tk):
                 accumulator -= frame_time
 
     def render_frame(self):
-        current = self.FRAME_BUFFER.pop(0)
+        try: current = self.FRAME_BUFFER.pop(0)
+        except: current = []
+        print(len(self.FRAME_BUFFER))
         for obj in current:
             obj.draw(self.canvas)
 
