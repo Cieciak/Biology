@@ -14,7 +14,7 @@ class Being:
         executable = organism.executable_dna()
         keys = ['size', 'vertical_force', 'mass']
         defa = [Vector(20, 20), Vector(0, -200), float(1.0)]
-        args = {}
+        args = {'base_organism': organism}
         mode = ''
         counter = 0
         for gene in executable:
@@ -48,7 +48,7 @@ class Being:
             print(args)
             return cls(Vector(0, 0), **args)
 
-    def __init__(self, position: Vector, mass: float = 1.0, vertical_force: Vector = Vector(-200, 0), size = Vector(20, 20)) -> None:
+    def __init__(self, position: Vector, base_organism: Organism, mass: float = 1.0, vertical_force: Vector = Vector(-200, 0), size = Vector(20, 20)) -> None:
         self.position: Vector = position         # [m]
         self.velocity: Vector = Vector(0, 0)     # [m/s]
         self.acceleration: Vector = Vector(0, 0) # [m/s^2]
@@ -60,6 +60,16 @@ class Being:
         self.force_dir: int = 0
 
         self.mass: float = mass
+        self.base_organism = base_organism
+
+    def __matmul__(P1, P2):
+
+        F1 = P1.base_organism @ P2.base_organism
+
+        children = []
+        for f in F1:
+            children.append(Being.fromOrganism(f))
+        return children
 
     def to_dict(self):
         return {'x': self.position.x, 'y': self.position.y}

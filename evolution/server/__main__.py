@@ -20,6 +20,10 @@ FRAME_BUFFER: list[list[Being]] = []
 
 GRAVITY: Vector = Vector(0, 90)
 
+def get_best(beings: list[Being], n: int = 2):
+    beings.sort(key = lambda x: x.position.y)
+    return beings[:n]
+
 def simulation_loop():
     global BEING_LIST, FRAME_BUFFER
     dt = 1 / 60
@@ -41,12 +45,19 @@ server = CPPP.CPPPServer('0.0.0.0', 8080)
 
 @server
 def handler(requests: CPPP.CPPPMessage):
-    global FRAME_BUFFER
+    global FRAME_BUFFER, BEING_LIST
     response = CPPP.CPPPMessage(header = HEADER)
-    if requests.body == 'get':
-        body = FRAME_BUFFER[:10]
-        FRAME_BUFFER = FRAME_BUFFER[10:]
-        response.add_body(body)
+    match requests.body:
+        case 'get':
+            body = FRAME_BUFFER[:10]
+            FRAME_BUFFER = FRAME_BUFFER[10:]
+            response.add_body(body)
+        case 'next_gen':
+            P1, P2 = get_best(BEING_LIST)
+            BEING_LIST = P1 @ P2
+            FRAME_BUFFER = []
+        case _:
+            print(requests.body)
     return response
 
 try: server.serve()

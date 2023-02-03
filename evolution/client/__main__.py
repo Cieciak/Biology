@@ -5,6 +5,7 @@ from ..utils.math import Vector
 from ..utils.graphics import RenderBeing
 
 SERVER = '127.0.0.1'
+#SERVER = '129.151.213.44'
 PORT = 8080
 
 class SimulationWindow(tkinter.Tk):
@@ -44,6 +45,19 @@ class SimulationWindow(tkinter.Tk):
         self.canvas.max = max(x_res, y_res)
         self.canvas.place(x = -1, y = -1)
 
+        cfg = {
+            'border': 0,
+            'background': '#08181A',
+            'foreground': '#DDDBCB',
+            'activebackground': '#050505',
+            'activeforeground': '#DDDBCB',
+        }
+
+        # Next gen
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEW', command = self.signal_next_generation)
+        self.next_button.place(x = x_res - 60 - 50 - 50 - 1, y = y_res - 1, height = 30 + 2, width = 50 + 2)
+
+
     # Keeps the frame buffer filled with frames
     def frame_handler(self):
         while True:
@@ -78,6 +92,9 @@ class SimulationWindow(tkinter.Tk):
         print(len(self.FRAME_BUFFER))
         for obj in current:
             obj.draw(self.canvas)
+
+    def signal_next_generation(self):
+        send_request(SERVER, PORT, CPPPMessage(body = 'next_gen'))
 
 if __name__ == '__main__':
     window = SimulationWindow(1000, 1000)

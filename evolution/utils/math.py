@@ -1,5 +1,4 @@
 from typing import Self
-from tkinter import Canvas, Tk
 
 class Vector:
 
@@ -34,9 +33,9 @@ class Vector:
     def manhattan(self, other: Self) -> float:
         return abs(self.x - other.x) + abs(self.y - other.y)
 
-    def update(self, ctx: Tk, dt: float):
+    def update(self, ctx, dt: float):
         pass
 
-    def draw(self, canvas: Canvas):
+    def draw(self, canvas):
         dx, dy = tuple(canvas.global_offset)
         canvas.create_oval(self.x + dx, self.y + dy, self.x + dx, self.y + dy)
