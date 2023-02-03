@@ -7,8 +7,7 @@ class Being:
     @staticmethod
     def time_coeff(t: float):
         return exp(-(4*t -2)**2)
-
-    
+ 
     @classmethod
     def fromOrganism(cls, organism: Organism):
         executable = organism.executable_dna()
@@ -45,7 +44,6 @@ class Being:
             for key, val in zip(keys, defa):
                 args[key] = val
 
-            print(args)
             return cls(Vector(0, 0), **args)
 
     def __init__(self, position: Vector, base_organism: Organism, mass: float = 1.0, vertical_force: Vector = Vector(-200, 0), size = Vector(20, 20)) -> None:

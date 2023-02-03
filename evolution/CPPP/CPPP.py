@@ -78,7 +78,6 @@ class CPPPServer:
                 if socket == self.server_socket:
                     incoming, address = self.server_socket.accept()
                     self.connections.append(incoming)
-                    print(f'New connection from {address}')
                 else:
                     raw_data = recvall(socket, self.MAX_BUFFER)
                     if raw_data:

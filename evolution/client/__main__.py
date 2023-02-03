@@ -21,6 +21,7 @@ class SimulationWindow(tkinter.Tk):
         self.FRAME_BUFFER = []
         self.TIME: float = 0.0
         self.loop_flag = True
+        self.frame_buffer_flag = True
 
         self.frame_buffer_thread: threading.Thread = threading.Thread(group = None, 
                                                                       target = self.frame_handler,
@@ -31,6 +32,7 @@ class SimulationWindow(tkinter.Tk):
         self.title(self.TITLE)
         self.geometry(f'{x_res}x{y_res + 30}')
         self.resizable(0, 0)
+        self.protocol('WM_DELETE_WINDOW', self.client_stop)
         self['bg'] = '#F5F1E3'
 
         # Set up the canvas
@@ -55,12 +57,15 @@ class SimulationWindow(tkinter.Tk):
 
         # Next gen
         self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEW', command = self.signal_next_generation)
-        self.next_button.place(x = x_res - 60 - 50 - 50 - 1, y = y_res - 1, height = 30 + 2, width = 50 + 2)
-
+        self.next_button.place(x = 0, y = y_res, height = 30, width = 50)
+        
+        # Next gen
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'REGENERATE', command = self.signal_simulation_reset)
+        self.next_button.place(x = 50, y = y_res, height = 30, width = 110)
 
     # Keeps the frame buffer filled with frames
     def frame_handler(self):
-        while True:
+        while self.frame_buffer_flag:
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
                 response = send_request(SERVER, PORT, CPPPMessage(body = b'get'))
                 for frame in response.body: 
@@ -93,8 +98,15 @@ class SimulationWindow(tkinter.Tk):
         for obj in current:
             obj.draw(self.canvas)
 
+    def client_stop(self):
+        self.frame_buffer_flag = False
+        self.loop_flag = False
+
     def signal_next_generation(self):
         send_request(SERVER, PORT, CPPPMessage(body = 'next_gen'))
+
+    def signal_simulation_reset(self):
+        send_request(SERVER, PORT, CPPPMessage(body = 'regenerate'))
 
 if __name__ == '__main__':
     window = SimulationWindow(1000, 1000)
