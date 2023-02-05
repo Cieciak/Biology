@@ -59,6 +59,7 @@ class Being:
 
         self.mass: float = mass
         self.base_organism = base_organism
+        self.size: Vector = size
 
     def __matmul__(P1, P2):
 
@@ -70,7 +71,10 @@ class Being:
         return children
 
     def to_dict(self):
-        return {'x': self.position.x, 'y': self.position.y}
+        return {
+            'position': {'x': self.position.x, 'y': self.position.y},
+            'size'    : {'x': self.size.x    , 'y': self.size.y}
+        }
 
     def make_decision(self, ctx: None, dt: float):
         if self.since_flap > 1:

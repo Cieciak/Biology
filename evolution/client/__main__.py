@@ -32,7 +32,7 @@ class SimulationWindow(tkinter.Tk):
         self.title(self.TITLE)
         self.geometry(f'{x_res}x{y_res + 30}')
         self.resizable(0, 0)
-        self.protocol('WM_DELETE_WINDOW', self.client_stop)
+        self.protocol('WM_DELETE_WINDOW', self.client_exit)
         self['bg'] = '#F5F1E3'
 
         # Set up the canvas
@@ -56,12 +56,12 @@ class SimulationWindow(tkinter.Tk):
         }
 
         # Next gen
-        self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEW', command = self.signal_next_generation)
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEXT', command = self.signal_next_generation)
         self.next_button.place(x = 0, y = y_res, height = 30, width = 50)
         
-        # Next gen
+        # Regenerate the whole simulation
         self.next_button = tkinter.Button(self, cnf = cfg, text = 'REGENERATE', command = self.signal_simulation_reset)
-        self.next_button.place(x = 50, y = y_res, height = 30, width = 110)
+        self.next_button.place(x = x_res - 110, y = y_res, height = 30, width = 110)
 
     # Keeps the frame buffer filled with frames
     def frame_handler(self):
@@ -69,7 +69,7 @@ class SimulationWindow(tkinter.Tk):
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
                 response = send_request(SERVER, PORT, CPPPMessage(body = b'get'))
                 for frame in response.body: 
-                    self.FRAME_BUFFER.append([RenderBeing(Vector(**being), Vector(20, 20)) for being in frame])
+                    self.FRAME_BUFFER.append([RenderBeing.fromDict(being) for being in frame])
             else:
                 time.sleep(1 / 30)
 
@@ -98,7 +98,7 @@ class SimulationWindow(tkinter.Tk):
         for obj in current:
             obj.draw(self.canvas)
 
-    def client_stop(self):
+    def client_exit(self):
         self.frame_buffer_flag = False
         self.loop_flag = False
 

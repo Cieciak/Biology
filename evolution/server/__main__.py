@@ -21,6 +21,11 @@ FRAME_PER_REQUEST: int = 10
 GRAVITY: Vector = Vector(0, 90)
 HEADER = {'method': 'GET'}
 
+SIMULATION_LOOP = True
+
+def get_thread_by_name(name: str):
+    for thread in threading.enumerate():
+        if thread.name == name: return thread
 
 def generate_initial_beings(genomes: list[str]):
     return [Being.fromOrganism(Organism.fromDNA(genome, CODONS_DICT)) for genome in genomes]
@@ -31,9 +36,9 @@ def get_best(beings: list[Being], n: int = 2):
 
 # Will generate frames
 def simulation_loop():
-    global BEING_LIST, FRAME_BUFFER, FRAME_MAX
+    global BEING_LIST, FRAME_BUFFER, FRAME_MAX, SIMULATION_LOOP
     dt = 1 / 60
-    while True:
+    while SIMULATION_LOOP:
         if len(FRAME_BUFFER) < FRAME_MAX:
             for obj in BEING_LIST: obj.update(None, dt, external_force = GRAVITY)
             FRAME = [obj.to_dict() for obj in BEING_LIST]
@@ -44,7 +49,7 @@ def simulation_loop():
 BEING_LIST = generate_initial_beings(ORIGINAL_GENOMES)
 
 
-simulation_thread = threading.Thread(target = simulation_loop)
+simulation_thread = threading.Thread(group = None, target = simulation_loop, name = 'simulation_loop')
 simulation_thread.start()
 
 server = CPPP.CPPPServer('0.0.0.0', 8080)
@@ -73,4 +78,8 @@ def handler(requests: CPPP.CPPPMessage):
     return response
 
 try: server.serve()
-except KeyboardInterrupt: pass
+except:
+    print('Closing server')
+    SIMULATION_LOOP = False
+    simulation_thread.join(0.1)
+    quit()

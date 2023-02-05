@@ -3,6 +3,13 @@ from tkinter import Canvas
 
 class RenderBeing:
 
+    @classmethod
+    def fromDict(cls, data: dict):
+        position = Vector(**data['position'])
+        size     = Vector(**data['size'])
+
+        return cls(position, size)
+
     def __init__(self, position: Vector, size: Vector) -> None:
         self.position = position
         self.size = size
