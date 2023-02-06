@@ -72,6 +72,7 @@ class Being:
 
     def to_dict(self):
         return {
+            'type'    : 'Being',
             'position': {'x': self.position.x, 'y': self.position.y},
             'size'    : {'x': self.size.x    , 'y': self.size.y}
         }
@@ -91,3 +92,22 @@ class Being:
         self.velocity += .5 *(self.acceleration + prev_acceleration) * dt
 
         self.since_flap += dt
+
+class PointOfInterest:
+
+    def __init__(self, position: Vector, size: Vector, color: str, id) -> None:
+        self.position = position
+        self.size = size
+        self.color = color
+        self.id = id
+
+    def to_dict(self):
+        return {
+            'type'    : 'PointOfInterest',
+            'position': {'x': self.position.x, 'y': self.position.y},
+            'size'    : {'x': self.size.x, 'y': self.size.y},
+            'color'   : self.color
+        }
+
+    def update(self, *args, **kwargs):
+        pass

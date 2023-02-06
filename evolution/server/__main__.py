@@ -1,7 +1,7 @@
 import threading, time
 from ..CPPP import CPPP
 from ..utils.math import Vector
-from ..utils.being import Being
+from ..utils.being import Being, PointOfInterest
 from ..utils.mendel import Organism, CODONS_DICT
 
 # These are the 4 hand-written starting genomes
@@ -11,15 +11,21 @@ ORIGINAL_GENOMES = [
     'AAAAGCCAAGGCGTTCGTCCTTGCTTT       CCGTCGTGCGGCAAAATCTCATTT TTGTTT    AAATTT             TCAAAAAGTTTT    CCGTGCTGATTT',
     'CCGAAACACCACACGATACACCACTTT       CCGAACAAGTTT             CGACCTTTT CCGATCATAATACACTTT TTGAAGTTT       GCTGCATTAGATCACTTT',
 ]
+
+SIMULATED_OBJECTS: list[Being | PointOfInterest] = []
+
+
 # List of currently simulated organisms
 BEING_LIST: list[Being] = []
 # Generated frames
 FRAME_BUFFER: list[list[Being]] = []
 FRAME_MAX: int = 100
-FRAME_PER_REQUEST: int = 10
+FRAME_PER_REQUEST: int = 20
 # Constant force pulling them down
 GRAVITY: Vector = Vector(0, 90)
 HEADER = {'method': 'GET'}
+
+T = PointOfInterest(Vector(-100, -100), Vector(100, 100), '#63CCCA')
 
 SIMULATION_LOOP = True
 
@@ -30,7 +36,8 @@ def get_thread_by_name(name: str):
 def generate_initial_beings(genomes: list[str]):
     return [Being.fromOrganism(Organism.fromDNA(genome, CODONS_DICT)) for genome in genomes]
 
-def get_best(beings: list[Being], n: int = 2):
+def get_best(objects: list[Being], n: int = 2):
+    beings = [obj for obj in objects if type(obj) == Being]
     beings.sort(key = lambda x: x.position.y)
     return beings[:n]
 
@@ -39,6 +46,7 @@ def simulation_loop():
     global BEING_LIST, FRAME_BUFFER, FRAME_MAX, SIMULATION_LOOP
     dt = 1 / 60
     while SIMULATION_LOOP:
+        print(len(FRAME_BUFFER))
         if len(FRAME_BUFFER) < FRAME_MAX:
             for obj in BEING_LIST: obj.update(None, dt, external_force = GRAVITY)
             FRAME = [obj.to_dict() for obj in BEING_LIST]
@@ -66,11 +74,11 @@ def handler(requests: CPPP.CPPPMessage):
 
         case 'next_gen':
             P1, P2 = get_best(BEING_LIST)
-            BEING_LIST = P1 @ P2
+            BEING_LIST = P1 @ P2 + [T, ]
             FRAME_BUFFER = []
 
         case 'regenerate':
-            BEING_LIST = generate_initial_beings(ORIGINAL_GENOMES)
+            BEING_LIST = generate_initial_beings(ORIGINAL_GENOMES) + [T, ]
             FRAME_BUFFER = []
 
         case _:

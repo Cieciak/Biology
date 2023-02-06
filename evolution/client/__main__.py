@@ -1,8 +1,9 @@
-import tkinter, time, threading
+import tkinter, time, threading, pprint
 from typing import Self
 from ..CPPP.CPPP import send_request, CPPPMessage
 from ..utils.math import Vector
-from ..utils.graphics import RenderBeing
+from ..utils.graphics import RenderBeing, PointOfInterest
+
 
 SERVER = '127.0.0.1'
 #SERVER = '129.151.213.44'
@@ -68,8 +69,15 @@ class SimulationWindow(tkinter.Tk):
         while self.frame_buffer_flag:
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
                 response = send_request(SERVER, PORT, CPPPMessage(body = b'get'))
-                for frame in response.body: 
-                    self.FRAME_BUFFER.append([RenderBeing.fromDict(being) for being in frame])
+                for frame in response.body:
+                    new_frame = []
+                    for obj in frame:
+                        match obj['type']:
+                            case 'Being':
+                                new_frame += [RenderBeing.fromDict(obj),]
+                            case 'PointOfInterest':
+                                new_frame += [PointOfInterest.fromDict(obj)]
+                    self.FRAME_BUFFER.append(new_frame)
             else:
                 time.sleep(1 / 30)
 
