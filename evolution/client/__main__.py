@@ -100,9 +100,7 @@ class SimulationWindow(tkinter.Tk):
                 accumulator -= frame_time
 
     def render_frame(self):
-        try: current = self.FRAME_BUFFER.pop(0)
-        except: current = []
-        print(len(self.FRAME_BUFFER))
+        current = self.FRAME_BUFFER.pop(0)
         for obj in current:
             obj.draw(self.canvas)
 

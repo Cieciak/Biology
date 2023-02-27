@@ -1,5 +1,7 @@
 from typing import Self
 
+def tkiner_color(rgb: tuple[int, int, int]): return '#{:02x}{:02x}{:02x}'.format(*rgb)
+
 class Vector:
 
     def __init__(self, x: float, y: float):
@@ -7,7 +9,7 @@ class Vector:
         self.y = y
 
     def __repr__(self) -> str:
-        return f'({self.x}, {self.y})'
+        return f'({self.x}; {self.y})'
 
     def __add__(self, other: Self):
         return Vector(self.x + other.x, self.y + other.y)
@@ -30,8 +32,13 @@ class Vector:
     def __iter__(self):
         for val in [self.x, self.y]: yield val
 
+    def __abs__(self): return (self.x ** 2 + self.y ** 2) ** .5
+
     def manhattan(self, other: Self) -> float:
         return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def dot(self, other: Self):
+        return self.x * other.x + self.y * other.y
 
     def update(self, ctx, dt: float):
         pass

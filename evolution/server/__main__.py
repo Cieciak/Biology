@@ -1,85 +1,134 @@
-import threading, time
+import threading, time, random, pprint
 from ..CPPP import CPPP
 from ..utils.math import Vector
 from ..utils.being import Being, PointOfInterest
-from ..utils.mendel import Organism, CODONS_DICT
+from ..utils.mendel import Organism, Gene
 
-# These are the 4 hand-written starting genomes
-ORIGINAL_GENOMES = [
-    'CCGAAAAAGAACCACCCTGGCCAACCTACATTT CCGAACAAGACTAAGAAGTTT    TTCAAGTTT ATCAAGTTT          CCGCCCAAGAAGTTT CCGATTCACCACTTT',
-    'CCGCATGATCGTCATCGTGATTTT          CCGCATCGTGATCATCGTGATTTT TAATTT    TAATTT             TAATTT          TAATTT',
-    'AAAAGCCAAGGCGTTCGTCCTTGCTTT       CCGTCGTGCGGCAAAATCTCATTT TTGTTT    AAATTT             TCAAAAAGTTTT    CCGTGCTGATTT',
-    'CCGAAACACCACACGATACACCACTTT       CCGAACAAGTTT             CGACCTTTT CCGATCATAATACACTTT TTGAAGTTT       GCTGCATTAGATCACTTT',
+FRAME_PER_REQUEST = 20
+HEADER = {'method': 'GET'}
+KERNEL = {0:1, 1:1}
+GENES = [
+    [Gene.make('COLOR', 2), Gene.make('POLY_TEST', 2, 0)],
+    [Gene.make('COLOR', 2), Gene.make('POLY_TEST', 2, 1)],
 ]
 
-SIMULATED_OBJECTS: list[Being | PointOfInterest] = []
+def generate_initial_beings(genes: list[str]):
+    output: list[Being] = []
+    for genome in genes:
+        organism = Organism.fromGenes(genome, KERNEL)
+        output += [Being.fromOrganism(organism, Vector(random.randrange(-10, 10), random.randrange(-10, 10))), ]
+    pprint.pprint(output)
+    return output
 
+class Simulator:
 
-# List of currently simulated organisms
-BEING_LIST: list[Being] = []
-# Generated frames
-FRAME_BUFFER: list[list[Being]] = []
-FRAME_MAX: int = 100
-FRAME_PER_REQUEST: int = 20
-# Constant force pulling them down
-GRAVITY: Vector = Vector(0, 90)
-HEADER = {'method': 'GET'}
+    def __init__(self, frame_limit: int):
+        # Frame handling
+        self.frame_limit = frame_limit
+        self.frame_buffer = []
+        self.frame_thread = threading.Thread(group = None, target = self.loop)
 
-T = PointOfInterest(Vector(-100, -100), Vector(100, 100), '#63CCCA')
+        # Simulation objects
+        self.objects: list[Being | PointOfInterest] = []
 
-SIMULATION_LOOP = True
+        self.global_force = Vector(0, 90)
+        self.dt = 1 / 60
+        self.running = threading.Event()
 
-def get_thread_by_name(name: str):
-    for thread in threading.enumerate():
-        if thread.name == name: return thread
+    # Generating new frame
+    def frame(self, dt: float):
+        new_frame = []
+        for obj in self.objects:
+            obj.update(self, dt)
+            new_frame.append(obj.to_dict())
+        return new_frame
 
-def generate_initial_beings(genomes: list[str]):
-    return [Being.fromOrganism(Organism.fromDNA(genome, CODONS_DICT)) for genome in genomes]
+    # Consume n frames
+    def consume(self, n: int):
+        output = self.frame_buffer[:n]
+        self.frame_buffer = self.frame_buffer[n:]
+        return output
 
-def get_best(objects: list[Being], n: int = 2):
-    beings = [obj for obj in objects if type(obj) == Being]
-    beings.sort(key = lambda x: x.position.y)
-    return beings[:n]
+    def clear(self): self.frame_buffer = []
 
-# Will generate frames
-def simulation_loop():
-    global BEING_LIST, FRAME_BUFFER, FRAME_MAX, SIMULATION_LOOP
-    dt = 1 / 60
-    while SIMULATION_LOOP:
-        print(len(FRAME_BUFFER))
-        if len(FRAME_BUFFER) < FRAME_MAX:
-            for obj in BEING_LIST: obj.update(None, dt, external_force = GRAVITY)
-            FRAME = [obj.to_dict() for obj in BEING_LIST]
-            FRAME_BUFFER += [FRAME, ]
-        else:
-            time.sleep(0.01)
+    # Simutation loop
+    # runs until frame_limit is reached
+    def loop(self):
+        while True:
+            if self.running.is_set(): return
+            if len(self.frame_buffer) > self.frame_limit:
+                time.sleep(0.01)
+                continue
+            frame = self.frame(self.dt)
+            self.frame_buffer += [frame, ]
 
-BEING_LIST = generate_initial_beings(ORIGINAL_GENOMES)
+    # Start simulation thread
+    def start(self): 
+        self.frame_thread.start()
 
+    # Add new objects to simulation
+    def add(self, object): self.objects += [object, ]
 
-simulation_thread = threading.Thread(group = None, target = simulation_loop, name = 'simulation_loop')
-simulation_thread.start()
+    # Append list of objects
+    def append(self, objects): self.objects += objects
 
+    # Remove all Beings
+    def purge(self): self.objects = [obj for obj in self.objects if type(obj) != Being]
+
+    # Filter the objects
+    def filter(self, func = None): return filter(func, self.objects)
+
+    # Return the best using filter function 
+    def get_best(self, n: int = 2, filter = lambda being: being.position.y):
+        beings = [being for being in self.objects if type(being) == Being]
+        beings.sort(key = lambda x: min([abs(x.position - poi.position) for poi in self.filter(lambda x: type(x) == PointOfInterest)]))
+        return beings[:n]
+
+    # Stop the simulation
+    def stop(self): self.running.set()
+
+simulator = Simulator(frame_limit = 100)
+
+poi1 = PointOfInterest(Vector(100, 100), Vector(50, 50), '#FAFF70', 1)
+poi2 = PointOfInterest(Vector(-100, 100), Vector(50, 50), '#FAFF70', 2)
+poi3 = PointOfInterest(Vector(0, 50), Vector(50, 50), '#FAFF70', 3)
+
+simulator.add(poi1)
+simulator.add(poi2)
+simulator.add(poi3)
+
+# Add all beings to the simulation
+for being in generate_initial_beings(GENES):
+    simulator.add(being)
+
+simulator.start()
 server = CPPP.CPPPServer('0.0.0.0', 8080)
 
 @server
 def handler(requests: CPPP.CPPPMessage):
-    global FRAME_BUFFER, BEING_LIST
+    global simulator
     response = CPPP.CPPPMessage(header = HEADER)
     match requests.body:
+        # GET - Return frames to the sender
         case 'get':
-            body = FRAME_BUFFER[:FRAME_PER_REQUEST]
-            FRAME_BUFFER = FRAME_BUFFER[FRAME_PER_REQUEST:]
+            body = simulator.consume(FRAME_PER_REQUEST)
             response.add_body(body)
 
+        # NEXT_GEN - Make new generation
         case 'next_gen':
-            P1, P2 = get_best(BEING_LIST)
-            BEING_LIST = P1 @ P2 + [T, ]
-            FRAME_BUFFER = []
+            P1, P2 = simulator.get_best()
+            F = P1 @ P2
+            print(F)
+            simulator.purge()
+            simulator.append(F)
+            simulator.clear()
 
+        # REGENERATE - Regenerate the beings 
         case 'regenerate':
-            BEING_LIST = generate_initial_beings(ORIGINAL_GENOMES) + [T, ]
-            FRAME_BUFFER = []
+            BEING_LIST = generate_initial_beings(GENES)
+            simulator.purge()
+            simulator.append(BEING_LIST)
+            simulator.clear()
 
         case _:
             print(requests.body)
@@ -88,6 +137,5 @@ def handler(requests: CPPP.CPPPMessage):
 try: server.serve()
 except:
     print('Closing server')
-    SIMULATION_LOOP = False
-    simulation_thread.join(0.1)
+    simulator.stop()
     quit()

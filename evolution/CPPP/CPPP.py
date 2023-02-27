@@ -7,7 +7,7 @@ def recvall(sock: socket.socket, bufsize: int) -> bytearray:
     while True:
         raw_data = sock.recv(bufsize)
         output += raw_data
-        if not raw_data or raw_data.endswith(b'\00\00'): return output
+        if not raw_data or output.endswith(b'\00\00'): return output
 
 class CPPPMessage:
     parser: TempParser = TempParser()
