@@ -236,8 +236,8 @@ class Organism:
 
     def get_DNA(self):
         genome = ''
-        for I, E in zip(self.intrones, self.flatten()):
-            genome += f'{I}{E.genome}'
+        for E in self.flatten():
+            genome += f'{E.genome}'
         return genome
 
     def get_executable(self):

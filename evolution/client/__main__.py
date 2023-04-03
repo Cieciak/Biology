@@ -1,12 +1,16 @@
-import tkinter, time, threading, pprint
+import tkinter, time, threading
 from typing import Self
-from ..CPPP.CPPP import send_request, CPPPMessage
+from CPPP import CPPPMessage, send_request
+
 from ..utils.math import Vector
 from ..utils.graphics import RenderBeing, PointOfInterest
 
+_4K     = (3000, 2000)
+DEF = (1000, 1000)
+
+RESOLUTION = DEF
 
 SERVER = '127.0.0.1'
-#SERVER = '129.151.213.44'
 PORT = 8080
 
 class SimulationWindow(tkinter.Tk):
@@ -31,10 +35,15 @@ class SimulationWindow(tkinter.Tk):
 
         # Setup
         self.title(self.TITLE)
-        self.geometry(f'{x_res}x{y_res + 30}')
+        self.tk.call('tk', 'scaling', 2.0)
+        self.geometry(f'{x_res}x{y_res + 30}+0+0')
         self.resizable(0, 0)
         self.protocol('WM_DELETE_WINDOW', self.client_exit)
         self['bg'] = '#F5F1E3'
+
+        print(f'Debug. Resolution: {x_res}px x {y_res}px')
+        print(f'Debug. DPI: {self.winfo_pixels("1i")}')
+        print(f'Debug. Server: {SERVER}:{PORT}')
 
         # Set up the canvas
         cfg = {
@@ -56,19 +65,27 @@ class SimulationWindow(tkinter.Tk):
             'activeforeground': '#DDDBCB',
         }
 
+        # Close app
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'Quit', command = self.client_exit)
+        self.next_button.place(x = 0, y = y_res, height = 30, width = 100)
+
         # Next gen
-        self.next_button = tkinter.Button(self, cnf = cfg, text = 'NEXT', command = self.signal_next_generation)
-        self.next_button.place(x = 0, y = y_res, height = 30, width = 50)
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'Next', command = self.signal_next_generation)
+        self.next_button.place(x = 100, y = y_res, height = 30, width = 100)
         
         # Regenerate the whole simulation
-        self.next_button = tkinter.Button(self, cnf = cfg, text = 'REGENERATE', command = self.signal_simulation_reset)
-        self.next_button.place(x = x_res - 110, y = y_res, height = 30, width = 110)
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'Regenerate', command = self.signal_simulation_reset)
+        self.next_button.place(x = 200, y = y_res, height = 30, width = 100)
+
+        # Regenerate the whole simulation
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'Genome', command = self.request_genome)
+        self.next_button.place(x = 300, y = y_res, height = 30, width = 100)
 
     # Keeps the frame buffer filled with frames
     def frame_handler(self):
         while self.frame_buffer_flag:
             if len(self.FRAME_BUFFER) < self.FRAME_MAX:
-                response = send_request(SERVER, PORT, CPPPMessage(body = b'get'))
+                response = send_request(SERVER, PORT, CPPPMessage(header = {'method': 'GET'}))
                 for frame in response.body:
                     new_frame = []
                     for obj in frame:
@@ -109,11 +126,18 @@ class SimulationWindow(tkinter.Tk):
         self.loop_flag = False
 
     def signal_next_generation(self):
-        send_request(SERVER, PORT, CPPPMessage(body = 'next_gen'))
+        message = CPPPMessage(header = {'method': 'NEXT_GENERATION'})
+        send_request(SERVER, PORT, message)
 
     def signal_simulation_reset(self):
-        send_request(SERVER, PORT, CPPPMessage(body = 'regenerate'))
+        message = CPPPMessage(header = {'method': 'SIMULATION_RESET'})
+        send_request(SERVER, PORT, message)
+
+    def request_genome(self):
+        message = CPPPMessage(header = {'method': 'REQUEST'}, body = 'genome')
+        response = send_request(SERVER, PORT, message)
+        print(response)
 
 if __name__ == '__main__':
-    window = SimulationWindow(1000, 1000)
+    window = SimulationWindow(RESOLUTION[0], RESOLUTION[1])
     window.mainloop(fps = 60)
