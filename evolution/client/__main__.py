@@ -5,10 +5,11 @@ from CPPP import CPPPMessage, send_request
 from ..utils.math import Vector
 from ..utils.graphics import RenderBeing, PointOfInterest
 
-_4K     = (3000, 2000)
+LAP = ( 800,  800)
+_4K = (3000, 2000)
 DEF = (1000, 1000)
 
-RESOLUTION = DEF
+RESOLUTION = LAP
 
 SERVER = '127.0.0.1'
 PORT = 8080
@@ -81,6 +82,10 @@ class SimulationWindow(tkinter.Tk):
         self.next_button = tkinter.Button(self, cnf = cfg, text = 'Genome', command = self.request_genome)
         self.next_button.place(x = 300, y = y_res, height = 30, width = 100)
 
+        # Gene editor
+        self.next_button = tkinter.Button(self, cnf = cfg, text = 'Enter', command = self.edit_genome)
+        self.next_button.place(x = 400, y = y_res, height = 30, width = 100)
+
     # Keeps the frame buffer filled with frames
     def frame_handler(self):
         while self.frame_buffer_flag:
@@ -137,6 +142,33 @@ class SimulationWindow(tkinter.Tk):
         message = CPPPMessage(header = {'method': 'REQUEST'}, body = 'genome')
         response = send_request(SERVER, PORT, message)
         print(response)
+
+    def edit_genome(self):
+        text_editor = tkinter.Toplevel(self)
+        text_editor.title('Gene editor')
+        gene_matrix = {}
+
+        def command_generator(row, column):
+            def action():
+                gene_matrix[(row, column)].destroy()
+                gene_matrix[(row, column)] = tkinter.Entry(text_editor, text = 'Hello')
+                gene_matrix[(row, column)].grid(row = row, column = column)
+                gene_matrix[(row, column + 1)] = tkinter.Button(text_editor, text = f'+', command = command_generator(row, column + 1))
+                gene_matrix[(row, column + 1)].grid(row = row, column = column + 1)
+            return action
+
+        for row in range(1, 11):
+            gene_matrix[(row, 0)] = tkinter.Button(text_editor, text = f'+', command = command_generator(row, 0))
+
+        for index, obj in gene_matrix.items(): obj.grid(row = index[0], column = index[1])
+
+        def send():
+            for row in range(10):
+                for column in range(10):
+                    print(gene_matrix.get((row, column), None))
+
+        done_button = tkinter.Button(text_editor, text='Done', command = send)
+        done_button.grid(row = 0, column = 0)
 
 if __name__ == '__main__':
     window = SimulationWindow(RESOLUTION[0], RESOLUTION[1])
