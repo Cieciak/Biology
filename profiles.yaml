@@ -1,0 +1,46 @@
+current: default
+
+default:
+  bases:
+    - [A, T]
+    - [C, G]
+  amino-acids:
+    - [GLY ,  Glycine]
+    - [GLA ,  Glutamic acid]
+    - [ASA ,  Aspartic acid]
+    - [ALA ,  Alanine]
+    - [VAL ,  Valine]
+    - [ARG ,  Arginine]
+    - [SER ,  Serine]
+    - [LYS ,  Lysine]
+    - [ASP ,  Asparagine]
+    - [THR ,  Threonine]
+    - [MET ,  Methionine]
+    - [ISO ,  Isoleucine]
+    - [GLU ,  Glutaminie]
+    - [HIS ,  Histidine]
+    - [PRO ,  Proline]
+    - [LEU ,  Leucine]
+    - [TRY ,  Tryptophan]
+    - [CYS ,  Cysteine]
+    - [TYR ,  Tyrosine]
+    - [PHE ,  Phenylalanine]
+    - [STOP,  Stop]
+
+niko:
+  bases:
+    - [A, T]
+    - [C, G]
+  amino-acids:
+    - [START,  Start]
+    - [NOP  ,  Nophragine]
+    - [NUL  ,  Nulysine]
+    - [INC  ,  Inculine]
+    - [DEC  ,  Declanine]
+    - [SPC  ,  Spicyrosine]
+    - [ADD  ,  Addysine]
+    - [MUL  ,  Mulithreonine]
+    - [CHK  ,  Checkrosine]
+    - [FNC  ,  Funcysteine]
+    - [ACT  ,  Actyglycine]
+    - [STOP ,  Stop]
