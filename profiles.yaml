@@ -1,6 +1,7 @@
-current: default
+current: niko
 
 default:
+  overwrite: no
   bases:
     - [A, T]
     - [C, G]
@@ -26,8 +27,11 @@ default:
     - [TYR ,  Tyrosine]
     - [PHE ,  Phenylalanine]
     - [STOP,  Stop]
+  table: ./codons/default.csv
+  length: 3
 
 niko:
+  overwrite: no
   bases:
     - [A, T]
     - [C, G]
@@ -44,3 +48,26 @@ niko:
     - [FNC  ,  Funcysteine]
     - [ACT  ,  Actyglycine]
     - [STOP ,  Stop]
+  table: ./codons/niko.csv
+  length: 3
+
+random:
+  overwrite: yes
+  bases:
+    - [A, Z]
+    - [B, Y]
+  amino-acids:
+    - [START,  Start]
+    - [NOP  ,  Nophragine]
+    - [NUL  ,  Nulysine]
+    - [INC  ,  Inculine]
+    - [DEC  ,  Declanine]
+    - [SPC  ,  Spicyrosine]
+    - [ADD  ,  Addysine]
+    - [MUL  ,  Mulithreonine]
+    - [CHK  ,  Checkrosine]
+    - [FNC  ,  Funcysteine]
+    - [ACT  ,  Actyglycine]
+    - [STOP ,  Stop]
+  table: ./codons/random.csv
+  length: 2

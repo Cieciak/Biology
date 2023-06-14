@@ -10,10 +10,10 @@ from ..utils.mendel import Organism, Gene
 # Config
 FRAME_PER_REQUEST = 20
 HEADER = {'method': 'GET'}
-KERNEL = {0:1, 1:1}
+KERNEL = {0:1, 1:3}
 GENES = [
-    [Gene.make('COLOR', 2), Gene.make('POLY_TEST', 2, 0)],
-    [Gene.make('COLOR', 2), Gene.make('POLY_TEST', 2, 1)],
+    [Gene.make('STRONG_WINGS_PROTEIN', 3), Gene.make('INC_BIO_ONE', 2), Gene.make('CORRUPTED_ONE', 2, 0), Gene.make('ACTIVATOR_GENE', 2)],
+    [Gene.make('STRONG_WINGS_PROTEIN', 0), Gene.make('INC_BIO_ONE', 2), Gene.make('CORRUPTED_ONE', 2, 1), Gene.make('ACTIVATOR_GENE', 2)],
 ]
 
 

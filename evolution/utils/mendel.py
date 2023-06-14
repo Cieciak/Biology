@@ -292,8 +292,8 @@ class Compiler:
                     if not skip: self.bio_relay[relay_id] = 0
                     skip = False
                 case 'CHK':
-                    value = self.get_number(code)
-                    if value > 0 and not skip: skip = True
+                    relay_id = self.get_number(code)
+                    if (self.bio_relay[relay_id] == 0) and not skip: skip = True
                     else: skip = False
                 case 'NOP':
                     skip = False
