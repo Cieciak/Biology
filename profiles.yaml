@@ -1,8 +1,35 @@
-current: niko
+current: simple
+
+simple:
+  overwrite: yes
+  length: 2
+  table: './codons/simple.csv'
+  bases:
+    - [A, NR1, First]
+    - [B, NR2, Second]
+    - [C, NR3, Third]
+    - [D, NR4, Fourth]
+  pairings:
+    - [A, D]
+    - [B, C]
+  amino-acids:
+    - [AM1, Amino 1]
+    - [AM2, Amino 2]
+    - [AM3, Amino 3]
+    - [AM4, Amino 4]
+    - [AM5, Amino 5]
+    - [AM6, Amino 6]
+    - [AM7, Amino 7]
+    - [AM8, Amino 8]
 
 default:
   overwrite: no
   bases:
+    - [A, Adenina]
+    - [C, Cytozyna]
+    - [G, Guanina]
+    - [T, Tymina]
+  rules:
     - [A, T]
     - [C, G]
   amino-acids:
@@ -33,6 +60,11 @@ default:
 niko:
   overwrite: no
   bases:
+    - [A, Adenina]
+    - [C, Cytozyna]
+    - [G, Guanina]
+    - [T, Tymina]
+  rules:
     - [A, T]
     - [C, G]
   amino-acids:
