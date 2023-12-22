@@ -1,61 +1,24 @@
-from pprint import pprint
+from dataclasses import dataclass
 import random, csv
 
-from dataclasses import dataclass
-
-@dataclass
-class NitrogenBase:
-    symbol: str
-    abbr: str
-    name: str
+from .amino import AminoAcid
+from .bases import NitrogenBase
+from .profile import Profile
 
 @dataclass
 class Pair:
     base: str
     amino: str
 
-CODON_LENGTH = 3
-
-# These are real nitrogen bases
-NITROGEN_BASES = [
-    NitrogenBase('T', 'Thy', 'Tymina'),
-    NitrogenBase('A', 'Ade', 'Adenina'),
-    NitrogenBase('C', 'Cyt', 'Cytozyna'),
-    NitrogenBase('G', 'Gua', 'GUanina'),
-]
-
-# These are my made up bases
-EXTENDED_NITROGEN_BASES = [
-    NitrogenBase('T', 'Thy', 'Tymina'),
-    NitrogenBase('A', 'Ade', 'Adenina'),
-    NitrogenBase('C', 'Cyt', 'Cytozyna'),
-    NitrogenBase('G', 'Gua', 'Guanina'),
-    NitrogenBase('X', 'Xhy', 'Kshylinina'),
-    NitrogenBase('Z', 'Zyp', 'Zyprolina'),
-]
-
-# This is totally made up
-AMINO_ACIDS = [
-    'START',
-    'NOP',
-    'NUL',
-    'INC',
-    'DEC',
-    'SPC',
-    'ADD',
-    'MUL',
-    'CHK',
-    'FNC',
-    'ACT',
-    'STOP',
-]
 
 class CodonCreator:
 
-    def __init__(self, bases: list[NitrogenBase] = NITROGEN_BASES, aminos: list[str] = AMINO_ACIDS, length: int = 3):
-        self.CODON_LENGTH: int         = length
-        self.BASES: list[NitrogenBase] = bases
-        self.AMINO_ACIDS: list[str]    = aminos
+    def __init__(self, profile: Profile):
+        self.profile = profile
+
+        self.CODON_LENGTH: int            = profile.length
+        self.BASES: list[NitrogenBase]    = profile.bases
+        self.AMINO_ACIDS: list[AminoAcid] = profile.amino
 
     @staticmethod
     def convertNumber(n: int, base: int) -> list[int]:
@@ -102,27 +65,23 @@ class CodonCreator:
         for codon in codons:
             amino = random.choice(self.AMINO_ACIDS)
             
-            self.pairs += [Pair(codon, amino)]
+            self.pairs += [Pair(codon, amino.abbr)]
 
         return self.pairs
 
-    def gernerate(self) -> list[Pair]:
+    def generate(self) -> list[Pair]:
         self.creatateAllCodons()
         data = self.assignAminoAcids()
 
         return data
 
-    def dumpCSV(self, path: str):
+    def dumpCSV(self, path: str = None):
         '''Dump generated pairs to `.csv` file'''
+        if self.profile.overwrite == False: raise PermissionError('The file is set as read only')
+
+        if path is None: path = self.profile.table
         with open(path, 'w') as file:
             CSV = csv.writer(file)
 
             for pair in self.pairs:
                 CSV.writerow((pair.base, pair.amino))
-
-
-if __name__ == '__main__':
-    creator = CodonCreator()
-
-    data = creator.gernerate()
-    pprint(data)

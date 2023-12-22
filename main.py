@@ -3,3 +3,12 @@ import pprint
 
 if __name__ == '__main__':
     profile = core.Profile.fromFile('./profiles.yaml')
+
+    pprint.pprint(profile)
+
+    creator = core.CodonCreator(profile)
+
+    table = creator.generate()
+    creator.dumpCSV()
+
+    pprint.pprint(table)

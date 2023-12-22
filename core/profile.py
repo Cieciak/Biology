@@ -1,17 +1,23 @@
 from dataclasses import dataclass
 import yaml
 
-from pprint import pprint
 from .bases import NitrogenBase
 from .amino import AminoAcid
 
 @dataclass
 class Profile:
     name: str
+    length: int
+    overwrite: bool
+    table: str
+    bases: list[NitrogenBase]
+    amino: list[AminoAcid]
+    pairings: dict[str, str]
     
 
     @classmethod
     def fromFile(cls, path: str):
+        '''Read profile from `.yaml` file'''
         
         # Get YAML data from the file
         with open(path, 'r') as file:
@@ -26,8 +32,20 @@ class Profile:
         table = config['table']
         bases = [NitrogenBase(*args) for args in config['bases']]
         amino = [AminoAcid(*args) for args in config['amino-acids']]
-        pairing = {}
-
+        
+        pairings = {}
         for a, b in config['pairings']:
-            pairing[a] = b
-            pairing[b] = a
+            pairings[a] = b
+            pairings[b] = a
+
+        kwargs = {
+            'overwrite': overwrite,
+            'pairings':  pairings,
+            'length':    length,
+            'table':     table,
+            'bases':     bases,
+            'amino':     amino,
+            'name':      name,
+        }
+
+        return cls(**kwargs)
