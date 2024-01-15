@@ -5,11 +5,11 @@ from .amino import AminoAcid
 from .bases import NitrogenBase
 from .profile import Profile
 
-@dataclass
-class Pair:
-    base: str
-    amino: str
-
+############################################
+##
+## This may be integrated into Profile class
+##
+############################################
 
 class CodonCreator:
 
@@ -22,7 +22,7 @@ class CodonCreator:
 
     @staticmethod
     def convertNumber(n: int, base: int) -> list[int]:
-        '''Convert n to list of digits'''
+        '''Convert `n` to list of digits'''
         if n == 0: return [0,]
 
         digits: list[int] = []
@@ -56,20 +56,20 @@ class CodonCreator:
 
         return self.codons
     
-    def assignAminoAcids(self, codons: list[str] = None) -> list[Pair]:
+    def assignAminoAcids(self, codons: list[str] = None) -> dict[str, str]:
         '''Assign amino acids to codons'''
-        self.pairs: list[Pair] = []
+        self.pairs: dict[str, str] = {}
 
-        if not codons: codons = self.codons
+        codons = codons or self.codons
 
         for codon in codons:
             amino = random.choice(self.AMINO_ACIDS)
             
-            self.pairs += [Pair(codon, amino.abbr)]
+            self.pairs[codon] = amino.abbr
 
         return self.pairs
 
-    def generate(self) -> list[Pair]:
+    def generate(self) -> dict[str, str]:
         self.creatateAllCodons()
         data = self.assignAminoAcids()
 
@@ -79,9 +79,45 @@ class CodonCreator:
         '''Dump generated pairs to `.csv` file'''
         if self.profile.overwrite == False: raise PermissionError('The file is set as read only')
 
-        if path is None: path = self.profile.table
+        path = path or self.profile.table
+
         with open(path, 'w') as file:
             CSV = csv.writer(file)
 
-            for pair in self.pairs:
-                CSV.writerow((pair.base, pair.amino))
+            for base, amino in self.pairs.items():
+                CSV.writerow((base, amino))
+
+    def getTable(self, path: str = None) -> dict[str, str]:
+        '''Get `codon` to `amino-acid` table'''
+        if self.pairs: return self.pairs
+
+        path = path or self.profile.table
+
+        pairs: dict[str, str] = {}
+        with open(path, 'r') as file:
+            CSV = csv.reader(file)
+
+            for codon, amino in CSV:
+                pairs[codon] = amino
+
+        return pairs
+    
+    def updateProfile(self) -> Profile:
+        '''Update profile with current codon table'''
+
+        self.profile.codons = self.getTable(self.profile.table)
+
+        return self.profile
+    
+def getProfile(path: str) -> Profile:
+
+    base = Profile.fromFile(path)
+
+    creator = CodonCreator(base)
+
+    creator.generate()
+    creator.dumpCSV()
+
+    profile = creator.updateProfile()
+
+    return profile

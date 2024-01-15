@@ -1,14 +1,21 @@
 import core
-import pprint
+import random
+
+from pprint import pprint
 
 if __name__ == '__main__':
-    profile = core.Profile.fromFile('./profiles.yaml')
+    profile = core.getProfile('./profiles.yaml')
 
-    pprint.pprint(profile)
+    dna = core.DNA.fromAmino(['START', 'DOM', 'KEY', 'ZER', 'VAL', 'ONE', 'STOP'], profile)
 
-    creator = core.CodonCreator(profile)
+    protein = core.Builder.fromDna(dna)
 
-    table = creator.generate()
-    creator.dumpCSV()
+    pprint(dna.info)
+    print(protein)
 
-    pprint.pprint(table)
+    c = core.Compiler()
+    c.action = core.A
+
+    d = c.make(protein)
+
+    print(d)

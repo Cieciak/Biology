@@ -2,7 +2,7 @@ current: simple
 
 simple:
   overwrite: yes
-  length: 2
+  length: 3
   table: './codons/simple.csv'
   bases:
     - [A, NR1, First]
@@ -13,14 +13,17 @@ simple:
     - [A, D]
     - [B, C]
   amino-acids:
-    - [AM1, Amino 1]
-    - [AM2, Amino 2]
-    - [AM3, Amino 3]
-    - [AM4, Amino 4]
-    - [AM5, Amino 5]
-    - [AM6, Amino 6]
-    - [AM7, Amino 7]
-    - [AM8, Amino 8]
+    - [ONE, One]
+    - [ZER, Zero]
+    - [KEY, Key]
+    - [VAL, Value]
+  special:
+    start:
+      - [START, Start]
+    stop:
+      - [STOP, Stop]
+    dominant:
+      - [DOM, Dominant]
 
 default:
   overwrite: no

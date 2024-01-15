@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import yaml
 
 from .bases import NitrogenBase
@@ -6,14 +6,15 @@ from .amino import AminoAcid
 
 @dataclass
 class Profile:
-    name: str
-    length: int
+    name:      str
+    length:    int
     overwrite: bool
-    table: str
-    bases: list[NitrogenBase]
-    amino: list[AminoAcid]
-    pairings: dict[str, str]
-    
+    table:     str
+    bases:     list[NitrogenBase]
+    amino:     list[AminoAcid]
+    pairings:  dict[str, str]
+    codons:    dict[str, str]             = field(default_factory = dict)
+    special:   dict[str, list[AminoAcid]] = field(default_factory = dict)
 
     @classmethod
     def fromFile(cls, path: str):
@@ -27,20 +28,32 @@ class Profile:
         name = data['current']
         config = data[name]
 
+        # Get all special codons
+        special = {}
+        special_amino = []
+        for function, values in config['special'].items():
+            amino = [AminoAcid(*args) for args in values]
+            special_amino += amino
+            special[function] = amino
+
+        # Get all other stuff
         overwrite = config['overwrite']
         length = config['length']
         table = config['table']
         bases = [NitrogenBase(*args) for args in config['bases']]
-        amino = [AminoAcid(*args) for args in config['amino-acids']]
+        amino = [AminoAcid(*args) for args in config['amino-acids']] + special_amino
         
+        # Create rules for pairing bases
         pairings = {}
         for a, b in config['pairings']:
             pairings[a] = b
             pairings[b] = a
 
+        # Map
         kwargs = {
             'overwrite': overwrite,
             'pairings':  pairings,
+            'special':   special,
             'length':    length,
             'table':     table,
             'bases':     bases,
@@ -49,3 +62,9 @@ class Profile:
         }
 
         return cls(**kwargs)
+    
+    def codon(self, amino: str) -> list[str]:
+
+        if type(amino) == AminoAcid: amino = amino.abbr
+
+        return [key for key, value in self.codons.items() if value == amino]
