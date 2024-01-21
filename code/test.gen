@@ -1,0 +1,12 @@
+#allel
+START DOM
+
+ZER KEY ONE VAL ;; Set 0-th proprty to 1
+
+STOP
+#allel
+START
+
+ZER KEY ZER VAL ;; Set to 0
+
+STOP

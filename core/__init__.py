@@ -4,4 +4,4 @@ from .profile import Profile
 from .generator import CodonCreator, getProfile
 from .organism import Organism
 from .gene import Gene
-from .being import Builder, Compiler, A
+from .being import Creator, A

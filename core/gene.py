@@ -17,9 +17,16 @@ class Gene:
         self.A2: DNA = A2
 
     def __repr__(self) -> str:
-        return f'[A1[{self.A1}], A2[{self.A2}]]'
+
+        left  = 'A' if self.A1.dominant else 'a'
+        right = 'A' if self.A2.dominant else 'a'
+
+        return f'{left}{right}'
     
     def executable(self):
         if not (self.A1.dominant ^ self.A2.dominant): return f'{self.A1.coding_strand}{self.A2.coding_strand}'
         elif self.A1.dominant: return f'{self.A1.coding_strand}'
         elif self.A2.dominant: return f'{self.A2.coding_strand}'
+
+    def A(self, index: int) -> DNA:
+        return [self.A1, self.A2][index] # Black magic fuckery, to avoid ifs, and error handling

@@ -1,1 +1,1 @@
-from ..core.profile import Profile
+from .parser import Reader, getGene

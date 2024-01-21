@@ -1,83 +1,73 @@
+from typing import Any, Callable
 from .organism import Organism
+from .profile import Profile
 
-class Builder:
+class CreatorContext:
 
-    def __init__(self):
-        ...
-
-    def fromOrganism(organism: Organism):
-        sequence = organism.executable()
-        amino    = []
-
-        while sequence:
-            codon    = sequence[:3]
-            sequence = sequence[3:]
-
-            amino += [organism.profile.codons[codon]]
-
-        return amino
-    
-    def fromDna(dna):
-        sequence = dna.coding_strand
-        amino    = []
-
-        while sequence:
-            codon    = sequence[:3]
-            sequence = sequence[3:]
-
-            amino += [dna.profile.codons[codon]]
-
-        return amino
-
-
-class Compiler:
-
-    def __init__(self):
-
+    def __init__(self) -> None:    
         self.stack: list = []
+        self.accumulator: int = 0
+        self.properties: dict[int, Any] = {}
 
-        self.action: {}
+class Creator:
 
-    def make(self, protein: list[str]):
+    def __init__(self, profile: Profile, microcode: dict[str, Callable]):
+        self.profile = profile
+        self.microcode = microcode
 
-        self.digit = 0
-        self.result = {}
+    def make(self, executable: str) -> dict[int, Any]:
+        ctx = CreatorContext()
 
-        for token in protein:
-            self.action[token](self)
+        while executable:
+            codon:      str = executable[:3]
+            executable: str = executable[3:]
 
-        print(self.stack)
-        return self.result
+            amino = self.profile.codons[codon]
 
-def zer_action(c: Compiler):
-    c.digit *= 2
+            action = self.microcode[amino]
 
-def one_action(c: Compiler):
-    c.digit *= 2
-    c.digit += 1
+            result = action(ctx)
+            if result: ctx = result
 
-def key_action(c):
-    c.stack.append(c.digit)
-    c.digit = 0
-    c.stack.append('key')
+        return ctx.properties
 
-def val_action(c):
-    c.stack.append(c.digit)
-    print(f'Val {c.stack}, {c.digit}')
-    c.digit = 0
-    c.stack.append('val')
+
+def ZER_action(ctx: CreatorContext) -> CreatorContext:
+    ctx.accumulator *= 2
+
+    return ctx
+
+def ONE_action(ctx: CreatorContext) -> CreatorContext:
+    ctx.accumulator *= 2
+    ctx.accumulator += 1
+
+    return ctx
+
+def KEY_action(ctx: CreatorContext) -> CreatorContext:
+    ctx.stack += [ctx.accumulator]
+    ctx.accumulator = 0
+
+    return ctx
+
+def VAL_action(ctx: CreatorContext) -> CreatorContext:
+    ctx.stack += [ctx.accumulator]
+    ctx.accumulator = 0
+
+    val = ctx.stack.pop()
+    key = ctx.stack.pop()
+
+    ctx.properties[key] = val
+
 
 A = {
     'START': lambda x: None,
     'STOP': lambda x: None,
-    'KEY': key_action,
-    'VAL': val_action,
+    'KEY': KEY_action,
+    'VAL': VAL_action,
     'DOM': lambda c: None,
-    'ZER': zer_action,
-    'ONE': one_action,
+    'ZER': ZER_action,
+    'ONE': ONE_action,
 }
-
-
 
 class Being:
 
