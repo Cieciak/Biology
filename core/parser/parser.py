@@ -1,6 +1,8 @@
-from typing import Callable
+from ..genetics.gene import Gene
+from ..profile import Profile
 import re
 
+# Function to break string after the index
 def breaks(string: str, index: int) -> (str, str):
     return string[:index], string[index:]
 
@@ -50,7 +52,6 @@ class Reader:
             # Skip newline too
             match = newline.match(data)
             if match:
-                print('Newline found, skipping')
                 order, data = breaks(data, match.end())
 
                 continue
@@ -59,7 +60,6 @@ class Reader:
             match = comment.match(data)
             if match:
                 skip = True
-                print('Comment found, skipping all')
                 order, data = breaks(data, match.end())
 
                 continue
@@ -67,7 +67,6 @@ class Reader:
             # Find allel direcive, this stops consuming data
             match = allel.match(data)
             if match:
-                print('Beggining of next allel found!')
 
                 return (orders, data)
 
@@ -76,16 +75,18 @@ class Reader:
         return (orders, '')
 
     @staticmethod     
-    def process(data: str):
+    def parse(data: str) -> list[list[str]]:
+        allele: list[list[str]] = []
 
         while data:
             if data.startswith('#allel\n'):
                 allel, data = Reader.consume_allel(data[7:])
-                print(allel)
-
+                allele += [allel,]
                 continue
 
             break
+
+        return allele
 
     @staticmethod
     def open(path: str) -> list[str]:
@@ -94,26 +95,8 @@ class Reader:
             data = file.read()
 
         return Reader.parse(data)
-
-    @staticmethod
-    def parse(data: str) -> list[str]:
-        '''Return list of amino-acids from string'''
-
-        Reader.process(data[::])
-
-        # Split into lines
-        lines: list[str] = data.split('\n')
-
-        orders: list[str] = []
-        for line in lines:
-            if not line: continue # Skip empty
-
-            # Everthing after ';' is a comment
-            left, *rigth = line.split(';', 1)
-
-            # Split line on ' ', and add to orders if not empty
-            orders += [bit.strip() for bit in left.split(' ') if bit]
-            
-        return orders
-    
-getGene: Callable = Reader.open
+   
+def getGene(path: str, profile: Profile) -> Gene:
+    '''Read gene from a file'''
+    S1, S2 = Reader.open(path)
+    return Gene.fromAmino(S1, S2, profile)

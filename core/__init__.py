@@ -1,7 +1,5 @@
-from .DNA import DNA
-from .bases import NitrogenBase
-from .profile import Profile
-from .generator import CodonCreator, getProfile
+from .genetics import DNA, AminoAcid, Gene
+from .profile import getProfile
 from .organism import Organism
-from .gene import Gene
 from .being import Creator, A
+from .parser import getGene

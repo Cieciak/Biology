@@ -1,7 +1,7 @@
 #allel
 START DOM
 
-ZER KEY ONE VAL ;; Set 0-th proprty to 1
+ZER KEY ONE VAL ;; Set 1-st property to 1
 
 STOP
 #allel

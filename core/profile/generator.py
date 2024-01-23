@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 import random, csv
 
-from .amino import AminoAcid
-from .bases import NitrogenBase
-from .profile import Profile
+from ..genetics.amino import AminoAcid
+from ..genetics.bases import NitrogenBase
+from . import Profile
 
 ############################################
 ##

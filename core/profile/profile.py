@@ -1,8 +1,9 @@
+from ..genetics.bases import NitrogenBase
+from ..genetics.amino import AminoAcid
+
 from dataclasses import dataclass, field
 import yaml
 
-from .bases import NitrogenBase
-from .amino import AminoAcid
 
 @dataclass
 class Profile:

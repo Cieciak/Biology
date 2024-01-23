@@ -1,8 +1,8 @@
 from typing import Self
 
-from .gene import Gene
+from .genetics.gene import Gene
 from .profile import Profile
-from .DNA import DNA
+from .genetics.DNA import DNA
 
 class Organism:
 

@@ -1,5 +1,5 @@
 from .DNA import DNA
-from .profile import Profile
+from ..profile import Profile
 
 class Gene:
 
@@ -7,6 +7,13 @@ class Gene:
     def random(cls, profile: Profile):
         A1 = DNA.random(profile)
         A2 = DNA.random(profile)
+
+        return cls(A1, A2, profile)
+    
+    @classmethod
+    def fromAmino(cls, S1: list[str], S2: list[str], profile: Profile):
+        A1 = DNA.fromAmino(S1, profile)
+        A2 = DNA.fromAmino(S2, profile)
 
         return cls(A1, A2, profile)
     
