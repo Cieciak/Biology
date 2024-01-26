@@ -1,5 +1,4 @@
-import core
-import random
+import biology.core as core
 
 from pprint import pprint
 
